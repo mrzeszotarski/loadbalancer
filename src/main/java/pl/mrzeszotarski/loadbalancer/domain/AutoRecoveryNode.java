@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import pl.mrzeszotarski.loadbalancer.recovery.AutoRecovery;
 import pl.mrzeszotarski.loadbalancer.recovery.ScheduledAutoRecovery;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
 
 import static pl.mrzeszotarski.loadbalancer.domain.LoadBalancerNodeState.DOWN;
 import static pl.mrzeszotarski.loadbalancer.domain.LoadBalancerNodeState.UP;
@@ -15,7 +15,6 @@ import static pl.mrzeszotarski.loadbalancer.domain.LoadBalancerNodeState.UP;
 @Slf4j
 public class AutoRecoveryNode<T> implements LoadBalancerNode<T> {
 
-    @Builder.Default
     private volatile LoadBalancerNodeState state = UP;
 
     private Callable<?> recoveryCallable;
@@ -23,7 +22,7 @@ public class AutoRecoveryNode<T> implements LoadBalancerNode<T> {
 
     private T identifier;
 
-    public AutoRecoveryNode(T identifier, Callable<?> recoveryCallable, long periodInSeconds){
+    public AutoRecoveryNode(T identifier, Callable<?> recoveryCallable, long periodInSeconds) {
         this.identifier = identifier;
         this.recoveryCallable = recoveryCallable;
         this.autoRecovery = new ScheduledAutoRecovery(periodInSeconds, this::up);
@@ -40,7 +39,7 @@ public class AutoRecoveryNode<T> implements LoadBalancerNode<T> {
 
     public synchronized void up() {
         log.info("Upping");
-        if(recoveryCallable != null){
+        if (recoveryCallable != null) {
             try {
                 recoveryCallable.call();
                 this.state = UP;
@@ -49,7 +48,7 @@ public class AutoRecoveryNode<T> implements LoadBalancerNode<T> {
             } catch (Exception e) {
                 log.error("Upping went wrong :(", e);
             }
-        }else{
+        } else {
             this.state = UP;
             log.info("Node upped");
             autoRecovery.stopRecover();

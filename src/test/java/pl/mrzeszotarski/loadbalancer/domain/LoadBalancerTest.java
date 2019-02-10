@@ -15,26 +15,26 @@ public class LoadBalancerTest {
     private List<String> nodesUsed = Lists.newArrayList();
 
     @Before
-    public void setUp(){
+    public void setUp() {
         counter = 0;
         loadBalancerFunctionCounter = 0;
-        loadBalancer = LoadBalancer.<String>builder()
-                .addNode(new AutoRecoveryNode<>("1", () -> {
+        NodeRegistry<String> nodesRegistry = new DefaultNodeRegistry<>(Lists.newArrayList(
+                new AutoRecoveryNode<>("1", () -> {
                     counter++;
-                    if(counter % 2 == 0){
+                    if (counter % 2 == 0) {
                         throw new RuntimeException("Recovery fail!");
                     }
                     return counter;
-                }, 1))
-                .addNode(new AutoRecoveryNode<>("2", () -> {
+                }, 1),
+                new AutoRecoveryNode<>("2", () -> {
                     counter++;
-                    if(counter % 2 == 0){
+                    if (counter % 2 == 0) {
                         throw new RuntimeException("Recovery fail!");
                     }
                     return counter;
-                }, 1))
-                .throwableSkipPredicate(throwable -> throwable instanceof NoSuchFieldException)
-                .build();
+                }, 1)
+        ), ChoosingNodesFunction::defaultChooseNodeFunction);
+        loadBalancer = new LoadBalancer<>(nodesRegistry, throwable -> throwable instanceof NoSuchFieldException);
     }
 
     @Test
@@ -66,9 +66,9 @@ public class LoadBalancerTest {
     public void testDecorateWithThrowableFilter() throws Exception {
         boolean expectedException = false;
         LoadBalancer.decorateCallable(loadBalancer, this::loadBalancerFunctionWithSkipCount, this::nodeSetterFunction); //loadBalancerFunctionCounter = 1
-        try{
+        try {
             LoadBalancer.decorateCallable(loadBalancer, this::loadBalancerFunctionWithSkipCount, this::nodeSetterFunction); //loadBalancerFunctionCounter = 2
-        }catch (NoSuchFieldException e){
+        } catch (NoSuchFieldException e) {
             expectedException = true;
         }
         LoadBalancer.decorateCallable(loadBalancer, this::loadBalancerFunctionWithSkipCount, this::nodeSetterFunction); //loadBalancerFunctionCounter = 3
@@ -82,9 +82,9 @@ public class LoadBalancerTest {
         boolean allNodesDown = false;
         LoadBalancer.decorateCallable(loadBalancer, this::loadBalancerFunction, this::nodeSetterFunction); //loadBalancerFunctionCounter = 1
         LoadBalancer.decorateCallable(loadBalancer, this::loadBalancerFunction, this::nodeSetterFunction); //loadBalancerFunctionCounter = 2
-        try{
+        try {
             LoadBalancer.decorateCallable(loadBalancer, this::loadBalancerFunction, this::nodeSetterFunction); //loadBalancerFunctionCounter = 2 throws All Nodes Down
-        }catch (Exception e){
+        } catch (Exception e) {
             allNodesDown = true;
         }
         Thread.sleep(1100);
@@ -97,25 +97,25 @@ public class LoadBalancerTest {
         Assert.assertEquals("success", actual);
     }
 
-    private String loadBalancerFunction(){
+    private String loadBalancerFunction() {
         loadBalancerFunctionCounter++;
-        if(loadBalancerFunctionCounter % 2 == 0){
+        if (loadBalancerFunctionCounter % 2 == 0) {
             throw new RuntimeException("Invoke error!");
-        }else {
+        } else {
             return "success";
         }
     }
 
     private String loadBalancerFunctionWithSkipCount() throws NoSuchFieldException {
         loadBalancerFunctionCounter++;
-        if(loadBalancerFunctionCounter % 2 == 0){
+        if (loadBalancerFunctionCounter % 2 == 0) {
             throw new NoSuchFieldException();
-        }else {
+        } else {
             return "success";
         }
     }
 
-    private String nodeSetterFunction(String node){
+    private String nodeSetterFunction(String node) {
         nodesUsed.add(node);
         return node;
     }
