@@ -4,6 +4,10 @@ import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import pl.mrzeszotarski.loadbalancer.domain.nodes.AutoRecoveryNode;
+import pl.mrzeszotarski.loadbalancer.domain.registry.ChoosingNodesFunction;
+import pl.mrzeszotarski.loadbalancer.domain.registry.DefaultNodeRegistry;
+import pl.mrzeszotarski.loadbalancer.domain.registry.NodeRegistry;
 
 import java.util.List;
 

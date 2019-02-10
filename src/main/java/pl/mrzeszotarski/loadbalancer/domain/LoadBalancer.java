@@ -2,6 +2,7 @@ package pl.mrzeszotarski.loadbalancer.domain;
 
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import pl.mrzeszotarski.loadbalancer.domain.registry.NodeRegistry;
 
 import java.util.concurrent.Callable;
 import java.util.function.Function;

@@ -1,8 +1,9 @@
-package pl.mrzeszotarski.loadbalancer.domain;
+package pl.mrzeszotarski.loadbalancer.domain.registry;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import pl.mrzeszotarski.loadbalancer.domain.nodes.LoadBalancerNode;
 import pl.mrzeszotarski.loadbalancer.exception.ChoseNodeException;
 
 import java.util.Collection;

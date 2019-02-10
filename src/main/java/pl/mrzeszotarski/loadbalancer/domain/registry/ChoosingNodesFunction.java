@@ -1,8 +1,9 @@
-package pl.mrzeszotarski.loadbalancer.domain;
+package pl.mrzeszotarski.loadbalancer.domain.registry;
 
+import pl.mrzeszotarski.loadbalancer.domain.nodes.LoadBalancerNode;
 import pl.mrzeszotarski.loadbalancer.exception.AllHostsDownException;
 
-import static pl.mrzeszotarski.loadbalancer.domain.LoadBalancerNodeState.UP;
+import static pl.mrzeszotarski.loadbalancer.domain.nodes.LoadBalancerNodeState.UP;
 
 public class ChoosingNodesFunction {
 
