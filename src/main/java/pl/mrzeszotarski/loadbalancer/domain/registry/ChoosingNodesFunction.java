@@ -7,18 +7,18 @@ import static pl.mrzeszotarski.loadbalancer.domain.nodes.LoadBalancerNodeState.U
 
 public class ChoosingNodesFunction {
 
-    public static <T> LoadBalancerNode<T> defaultChooseNodeFunction(DefaultNodeRegistry<T> nodesRegistry) {
-        if (nodesRegistry.getCurrentNode() == null) {
+    public static <T> LoadBalancerNode<T> defaultChooseNodeFunction(NodeRegistry<T> nodesRegistry) {
+        if (!nodesRegistry.currentNode().isPresent()) {
             return defaultFindUpNode(nodesRegistry);
         }
-        if (nodesRegistry.getCurrentNode().currentState() == UP)
-            return nodesRegistry.getCurrentNode();
+        if (nodesRegistry.currentNode().get().currentState() == UP)
+            return nodesRegistry.currentNode().get();
         else {
             return defaultFindUpNode(nodesRegistry);
         }
     }
 
-    private static <T> LoadBalancerNode<T> defaultFindUpNode(DefaultNodeRegistry<T> nodesRegistry) {
-        return nodesRegistry.getNodes().stream().filter(node -> node.currentState() == UP).findFirst().orElseThrow(AllHostsDownException::new);
+    private static <T> LoadBalancerNode<T> defaultFindUpNode(NodeRegistry<T> nodesRegistry) {
+        return nodesRegistry.nodes().stream().filter(node -> node.currentState() == UP).findFirst().orElseThrow(AllHostsDownException::new);
     }
 }

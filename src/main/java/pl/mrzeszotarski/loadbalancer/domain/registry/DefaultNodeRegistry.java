@@ -4,10 +4,11 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import pl.mrzeszotarski.loadbalancer.domain.nodes.LoadBalancerNode;
-import pl.mrzeszotarski.loadbalancer.exception.ChoseNodeException;
 
 import java.util.Collection;
-import java.util.function.Function;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+
 
 @Data
 @RequiredArgsConstructor
@@ -15,8 +16,7 @@ import java.util.function.Function;
 public class DefaultNodeRegistry<T> implements NodeRegistry<T> {
 
     private final Collection<LoadBalancerNode<T>> nodes;
-    private LoadBalancerNode<T> currentNode;
-    private final Function<DefaultNodeRegistry<T>, LoadBalancerNode<T>> choseNodeFunction;
+    private AtomicReference<LoadBalancerNode<T>> currentNode = new AtomicReference<>();
 
     @Override
     public void downNodeWithIdentifier(T identifier) {
@@ -25,12 +25,22 @@ public class DefaultNodeRegistry<T> implements NodeRegistry<T> {
     }
 
     @Override
-    public LoadBalancerNode<T> choseNode() {
-        try {
-            currentNode = choseNodeFunction.apply(this);
-            return currentNode;
-        } catch (Exception e) {
-            throw new ChoseNodeException(e);
+    public Optional<LoadBalancerNode<T>> currentNode() {
+        return Optional.ofNullable(currentNode.get());
+    }
+
+    @Override
+    public Collection<LoadBalancerNode<T>> nodes() {
+        return nodes;
+    }
+
+    @Override
+    public void choseNode(T identifier) {
+        if(currentNode.get() == null){
+            nodes.stream().filter(node -> node.identifier().equals(identifier)).findFirst().ifPresent(node ->this.currentNode.set(node));
+        }
+        else if(!currentNode.get().identifier().equals(identifier)){
+            nodes.stream().filter(node -> node.identifier().equals(identifier)).findFirst().ifPresent(node ->this.currentNode.set(node));
         }
     }
 }
